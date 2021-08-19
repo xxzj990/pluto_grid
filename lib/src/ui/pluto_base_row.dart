@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hovering/hovering.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
 class PlutoBaseRow extends StatelessWidget {
@@ -58,8 +59,7 @@ class _RowContainerWidget extends PlutoStatefulWidget {
   __RowContainerWidgetState createState() => __RowContainerWidgetState();
 }
 
-abstract class __RowContainerWidgetStateWithChangeKeepAlive
-    extends PlutoStateWithChangeKeepAlive<_RowContainerWidget> {
+abstract class __RowContainerWidgetStateWithChangeKeepAlive extends PlutoStateWithChangeKeepAlive<_RowContainerWidget> {
   bool? isCurrentRow;
 
   bool? isSelectedRow;
@@ -127,34 +127,27 @@ abstract class __RowContainerWidgetStateWithChangeKeepAlive
   }
 }
 
-class __RowContainerWidgetState
-    extends __RowContainerWidgetStateWithChangeKeepAlive {
+class __RowContainerWidgetState extends __RowContainerWidgetStateWithChangeKeepAlive {
   Color rowColor() {
     if (isDragTarget!) return widget.stateManager.configuration!.checkedColor;
 
-    final bool checkCurrentRow =
-        isCurrentRow! && (!isSelecting! && !hasCurrentSelectingPosition!);
+    final bool checkCurrentRow = isCurrentRow! && (!isSelecting! && !hasCurrentSelectingPosition!);
 
-    final bool checkSelectedRow =
-        widget.stateManager.isSelectedRow(widget.row!.key);
+    final bool checkSelectedRow = widget.stateManager.isSelectedRow(widget.row!.key);
 
     if (!checkCurrentRow && !checkSelectedRow) {
       return Colors.transparent;
     }
 
     if (widget.stateManager.selectingMode.isRow) {
-      return checkSelectedRow
-          ? widget.stateManager.configuration!.activatedColor
-          : Colors.transparent;
+      return checkSelectedRow ? widget.stateManager.configuration!.activatedColor : Colors.transparent;
     }
 
     if (!hasFocus!) {
       return Colors.transparent;
     }
 
-    return checkCurrentRow
-        ? widget.stateManager.configuration!.activatedColor
-        : Colors.transparent;
+    return checkCurrentRow ? widget.stateManager.configuration!.activatedColor : Colors.transparent;
   }
 
   @override
@@ -163,26 +156,27 @@ class __RowContainerWidgetState
 
     return Container(
       decoration: BoxDecoration(
-        color: isCheckedRow!
-            ? Color.alphaBlend(const Color(0x11757575), rowColor())
-            : rowColor(),
-        border: Border(
-          top: isDragTarget! && isTopDragTarget!
-              ? BorderSide(
-                  width: PlutoGridSettings.rowBorderWidth,
-                  color:
-                      widget.stateManager.configuration!.activatedBorderColor,
-                )
-              : BorderSide.none,
-          bottom: BorderSide(
-            width: PlutoGridSettings.rowBorderWidth,
-            color: isDragTarget! && isBottomDragTarget!
-                ? widget.stateManager.configuration!.activatedBorderColor
-                : widget.stateManager.configuration!.borderColor,
-          ),
+        color: isCheckedRow! ? Color.alphaBlend(const Color(0x11757575), rowColor()) : rowColor(),
+      ),
+      child: HoverContainer(
+        color: Colors.transparent,
+        hoverColor: widget.stateManager.configuration!.hoverColor,
+        child: Column(
+          children: [
+            isDragTarget! && isTopDragTarget!
+                ? Container(
+                    height: PlutoGridSettings.rowBorderWidth,
+                    color: widget.stateManager.configuration!.activatedBorderColor,
+                  )
+                : Container(),
+            widget.child!,
+            Container(
+              height: PlutoGridSettings.rowBorderWidth,
+              color: isDragTarget! && isBottomDragTarget! ? widget.stateManager.configuration!.activatedBorderColor : widget.stateManager.configuration!.borderColor,
+            ),
+          ],
         ),
       ),
-      child: widget.child,
     );
   }
 }

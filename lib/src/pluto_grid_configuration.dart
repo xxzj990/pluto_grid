@@ -20,6 +20,9 @@ class PlutoGridConfiguration {
   /// Activated Border Color. (Current cell)
   final Color activatedBorderColor;
 
+  /// Hover Color
+  final Color hoverColor;
+
   /// Checked Color. (Checked rows)
   final Color checkedColor;
 
@@ -73,6 +76,7 @@ class PlutoGridConfiguration {
     this.gridBorderColor = const Color(0xFFA1A5AE),
     this.activatedColor = const Color(0xFFDCF5FF),
     this.activatedBorderColor = Colors.lightBlue,
+    this.hoverColor = const Color(0xFFE6E8EA),
     this.checkedColor = const Color(0x11757575),
     this.borderColor = const Color(0xFFDDE2EB),
     this.cellColorInEditState = Colors.white,
@@ -106,6 +110,7 @@ class PlutoGridConfiguration {
     this.gridBorderColor = const Color(0xFF000000),
     this.activatedColor = const Color(0xFF313131),
     this.activatedBorderColor = const Color(0xFFFFFFFF),
+    this.hoverColor = const Color(0xFFE6E8EA),
     this.checkedColor = const Color(0x11202020),
     this.borderColor = const Color(0xFF000000),
     this.cellColorInEditState = const Color(0xFF666666),
