@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 import 'package:pluto_grid/pluto_grid.dart';
@@ -20,11 +22,17 @@ typedef PlutoOnRowDoubleTapEventCallback = void Function(
 typedef PlutoOnRowSecondaryTapEventCallback = void Function(
     PlutoGridOnRowSecondaryTapEvent event);
 
+typedef PlutoOnRowsMovedEventCallback = void Function(
+    PlutoGridOnRowsMovedEvent event);
+
 typedef CreateHeaderCallBack = Widget Function(
     PlutoGridStateManager stateManager);
 
 typedef CreateFooterCallBack = Widget Function(
     PlutoGridStateManager stateManager);
+
+typedef PlutoRowColorCallback = Color Function(
+    PlutoRowColorContext rowColorContext);
 
 class PlutoGrid extends StatefulWidget {
   final List<PlutoColumn>? columns;
@@ -43,9 +51,13 @@ class PlutoGrid extends StatefulWidget {
 
   final PlutoOnRowSecondaryTapEventCallback? onRowSecondaryTap;
 
+  final PlutoOnRowsMovedEventCallback? onRowsMoved;
+
   final CreateHeaderCallBack? createHeader;
 
   final CreateFooterCallBack? createFooter;
+
+  final PlutoRowColorCallback? rowColorCallback;
 
   final PlutoGridConfiguration? configuration;
 
@@ -67,8 +79,10 @@ class PlutoGrid extends StatefulWidget {
     this.onRowChecked,
     this.onRowDoubleTap,
     this.onRowSecondaryTap,
+    this.onRowsMoved,
     this.createHeader,
     this.createFooter,
+    this.rowColorCallback,
     this.configuration,
     this.mode = PlutoGridMode.normal,
   }) : super(key: key);
@@ -164,12 +178,15 @@ class _PlutoGridState extends State<PlutoGrid> {
       onRowCheckedEventCallback: widget.onRowChecked,
       onRowDoubleTapEventCallback: widget.onRowDoubleTap,
       onRowSecondaryTapEventCallback: widget.onRowSecondaryTap,
+      onRowsMovedEventCallback: widget.onRowsMoved,
       createHeader: widget.createHeader,
       createFooter: widget.createFooter,
       configuration: widget.configuration,
     );
 
     stateManager.addListener(changeStateListener);
+
+    stateManager.setRowColorCallback(widget.rowColorCallback);
 
     // Dispose
     disposeList.add(() {
@@ -263,12 +280,29 @@ class _PlutoGridState extends State<PlutoGrid> {
   }
 
   KeyEventResult handleGridFocusOnKey(FocusNode focusNode, RawKeyEvent event) {
-    keyManager!.subject.add(PlutoKeyManagerEvent(
-      focusNode: focusNode,
-      event: event,
-    ));
+    /// 2021-11-19
+    /// KeyEventResult.skipRemainingHandlers 동작 오류로 인한 임시 코드
+    /// 이슈 해결 후 :
+    /// ```dart
+    /// keyManager!.subject.add(PlutoKeyManagerEvent(
+    ///   focusNode: focusNode,
+    ///   event: event,
+    /// ));
+    /// ```
+    if (keyManager!.eventResult.isSkip == false) {
+      keyManager!.subject.add(PlutoKeyManagerEvent(
+        focusNode: focusNode,
+        event: event,
+      ));
+    }
 
-    return KeyEventResult.handled;
+    /// 2021-11-19
+    /// KeyEventResult.skipRemainingHandlers 동작 오류로 인한 임시 코드
+    /// 이슈 해결 후 :
+    /// ```dart
+    /// return KeyEventResult.handled;
+    /// ```
+    return keyManager!.eventResult.consume(KeyEventResult.handled);
   }
 
   void setLayout(BoxConstraints size) {
@@ -315,7 +349,7 @@ class _PlutoGridState extends State<PlutoGrid> {
               return Focus(
                 focusNode: stateManager.gridFocusNode,
                 child: ScrollConfiguration(
-                  behavior: const ScrollBehavior().copyWith(
+                  behavior: const PlutoScrollBehavior().copyWith(
                     scrollbars: false,
                   ),
                   child: Container(
@@ -323,6 +357,9 @@ class _PlutoGridState extends State<PlutoGrid> {
                         const EdgeInsets.all(PlutoGridSettings.gridPadding),
                     decoration: BoxDecoration(
                       color: stateManager.configuration!.gridBackgroundColor,
+                      borderRadius: widget.mode.isNormal
+                          ? stateManager.configuration!.gridBorderRadius
+                          : BorderRadius.zero,
                       border: Border.all(
                         color: stateManager.configuration!.gridBorderColor,
                         width: PlutoGridSettings.gridBorderWidth,
@@ -344,6 +381,8 @@ class _PlutoGridState extends State<PlutoGrid> {
                               axis: Axis.horizontal,
                               color:
                                   stateManager.configuration!.gridBorderColor,
+                              shadow: stateManager
+                                  .configuration!.enableGridBorderShadow,
                             ),
                           ),
                         ],
@@ -395,6 +434,8 @@ class _PlutoGridState extends State<PlutoGrid> {
                               axis: Axis.vertical,
                               color:
                                   stateManager.configuration!.gridBorderColor,
+                              shadow: stateManager
+                                  .configuration!.enableGridBorderShadow,
                             ),
                           ),
                         if (_showFrozenColumn! && _hasRightFrozenColumns!)
@@ -407,6 +448,8 @@ class _PlutoGridState extends State<PlutoGrid> {
                               reverse: true,
                               color:
                                   stateManager.configuration!.gridBorderColor,
+                              shadow: stateManager
+                                  .configuration!.enableGridBorderShadow,
                             ),
                           ),
                         Positioned(
@@ -416,6 +459,8 @@ class _PlutoGridState extends State<PlutoGrid> {
                           child: PlutoShadowLine(
                             axis: Axis.horizontal,
                             color: stateManager.configuration!.gridBorderColor,
+                            shadow: stateManager
+                                .configuration!.enableGridBorderShadow,
                           ),
                         ),
                         if (stateManager.showFooter) ...[
@@ -428,6 +473,8 @@ class _PlutoGridState extends State<PlutoGrid> {
                               reverse: true,
                               color:
                                   stateManager.configuration!.gridBorderColor,
+                              shadow: stateManager
+                                  .configuration!.enableGridBorderShadow,
                             ),
                           ),
                           Positioned.fill(
@@ -557,6 +604,16 @@ class PlutoGridOnRowSecondaryTapEvent {
   });
 }
 
+class PlutoGridOnRowsMovedEvent {
+  final int? idx;
+  final List<PlutoRow?>? rows;
+
+  PlutoGridOnRowsMovedEvent({
+    required this.idx,
+    required this.rows,
+  });
+}
+
 class PlutoGridOnRowCheckedOneEvent extends PlutoGridOnRowCheckedEvent {
   PlutoGridOnRowCheckedOneEvent({
     PlutoRow? row,
@@ -621,16 +678,44 @@ class PlutoGridSettings {
   static const int debounceMillisecondsForColumnFilter = 300;
 }
 
+class PlutoScrollBehavior extends MaterialScrollBehavior {
+  const PlutoScrollBehavior() : super();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
+}
+
+class PlutoRowColorContext {
+  final PlutoRow row;
+
+  final int rowIdx;
+
+  final PlutoGridStateManager stateManager;
+
+  PlutoRowColorContext({
+    required this.row,
+    required this.rowIdx,
+    required this.stateManager,
+  });
+}
+
 enum PlutoGridMode {
   normal,
   select,
+  selectWithOneTap,
   popup,
 }
 
 extension PlutoGridModeExtension on PlutoGridMode? {
   bool get isNormal => this == PlutoGridMode.normal;
 
-  bool get isSelect => this == PlutoGridMode.select;
+  bool get isSelect =>
+      this == PlutoGridMode.select || this == PlutoGridMode.selectWithOneTap;
+
+  bool get isSelectModeWithOneTap => this == PlutoGridMode.selectWithOneTap;
 
   bool get isPopup => this == PlutoGridMode.popup;
 }

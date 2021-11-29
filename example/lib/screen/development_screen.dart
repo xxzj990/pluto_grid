@@ -1,8 +1,9 @@
-import 'package:example/screen/home_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
 import '../dummy_data/development.dart';
+import 'empty_screen.dart';
+import 'home_screen.dart';
 
 class DevelopmentScreen extends StatefulWidget {
   static const routeName = 'development';
@@ -18,7 +19,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
 
   PlutoGridStateManager? stateManager;
 
-  PlutoGridSelectingMode? gridSelectingMode = PlutoGridSelectingMode.row;
+  PlutoGridSelectingMode? gridSelectingMode = PlutoGridSelectingMode.cell;
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         enableRowChecked: true,
         enableContextMenu: false,
         enableDropToResize: true,
+        titleTextAlign: PlutoColumnTextAlign.right,
         width: 250,
         minWidth: 175,
         renderer: (rendererContext) {
@@ -45,7 +47,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
                 onPressed: () {
                   rendererContext.stateManager!.insertRows(
                     rendererContext.rowIdx!,
-                    rendererContext.stateManager!.getNewRows(count: 3),
+                    rendererContext.stateManager!.getNewRows(count: 1),
                   );
                 },
                 iconSize: 18,
@@ -79,7 +81,12 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         title: 'column2',
         field: 'column2',
         enableContextMenu: false,
-        type: PlutoColumnType.select(<String>['red', 'blue', 'green']),
+        textAlign: PlutoColumnTextAlign.right,
+        titleTextAlign: PlutoColumnTextAlign.right,
+        type: PlutoColumnType.select(
+          <String>['red', 'blue', 'green'],
+          enableColumnFilter: true,
+        ),
         renderer: (rendererContext) {
           Color textColor = Colors.black;
 
@@ -97,22 +104,29 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
               color: textColor,
               fontWeight: FontWeight.bold,
             ),
+            textAlign: rendererContext.column!.textAlign.value,
           );
         },
       ),
       PlutoColumn(
         title: 'column3',
         field: 'column3',
+        textAlign: PlutoColumnTextAlign.left,
+        titleTextAlign: PlutoColumnTextAlign.center,
         type: PlutoColumnType.date(),
       ),
       PlutoColumn(
         title: 'column4',
         field: 'column4',
+        textAlign: PlutoColumnTextAlign.center,
+        titleTextAlign: PlutoColumnTextAlign.right,
         type: PlutoColumnType.time(),
       ),
       PlutoColumn(
         title: 'column5',
         field: 'column5',
+        textAlign: PlutoColumnTextAlign.center,
+        titleTextAlign: PlutoColumnTextAlign.left,
         type: PlutoColumnType.number(
           negative: true,
         ),
@@ -181,6 +195,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         child: PlutoGrid(
           columns: columns,
           rows: rows,
+          // mode: PlutoGridMode.selectWithOneTap,
           onChanged: (PlutoGridOnChangedEvent event) {
             print(event);
           },
@@ -189,7 +204,14 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
             stateManager!.setSelectingMode(gridSelectingMode!);
             stateManager!.setShowColumnFilter(true);
           },
+          // onSelected: (event) {
+          //   print(event.cell!.value);
+          // },
           onRowChecked: handleOnRowChecked,
+          onRowsMoved: (event) {
+            print(event.idx);
+            print(event.rows);
+          },
           // onRowDoubleTap: (e) {
           //   print('Double click A Row.');
           //   print(e.row?.cells['column1']?.value);
@@ -211,6 +233,12 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
                       child: const Text('Go Home'),
                       onPressed: () {
                         Navigator.pushNamed(context, HomeScreen.routeName);
+                      },
+                    ),
+                    ElevatedButton(
+                      child: const Text('Go Empty'),
+                      onPressed: () {
+                        Navigator.pushNamed(context, EmptyScreen.routeName);
                       },
                     ),
                     ElevatedButton(
@@ -266,9 +294,20 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
               ),
             );
           },
-          createFooter: (stateManager) => PlutoPagination(stateManager),
+          createFooter: (stateManager) {
+            stateManager.setPageSize(10, notify: false);
+            return PlutoPagination(stateManager);
+          },
+          rowColorCallback: (rowColorContext) {
+            return rowColorContext.row.cells['column2']!.value == 'red'
+                ? const Color(0xFFFFB0B0)
+                : Colors.transparent;
+          },
           configuration: PlutoGridConfiguration(
             // rowHeight: 30.0,
+            enableColumnBorder: true,
+            enableGridBorderShadow: true,
+            gridBorderRadius: BorderRadius.circular(10),
             scrollbarConfig: const PlutoGridScrollbarConfig(
               isAlwaysShown: false,
               scrollbarThickness: 8,

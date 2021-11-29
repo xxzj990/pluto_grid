@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
@@ -21,6 +19,8 @@ abstract class IRowState {
 
   /// Row of currently selected cell.
   PlutoRow? get currentRow;
+
+  PlutoRowColorCallback? get rowColorCallback;
 
   int? getRowIdxByOffset(double offset);
 
@@ -78,6 +78,9 @@ abstract class IRowState {
     bool flag, {
     bool notify = true,
   });
+
+  /// Dynamically change the background color of row by implementing a callback function.
+  void setRowColorCallback(PlutoRowColorCallback rowColorCallback);
 }
 
 mixin RowState implements IPlutoGridState {
@@ -124,6 +127,12 @@ mixin RowState implements IPlutoGridState {
     }
 
     return refRows![currentRowIdx!];
+  }
+
+  PlutoRowColorCallback? _rowColorCallback;
+
+  PlutoRowColorCallback? get rowColorCallback {
+    return _rowColorCallback;
   }
 
   int? getRowIdxByOffset(double offset) {
@@ -225,22 +234,14 @@ mixin RowState implements IPlutoGridState {
       return;
     }
 
-    if (page > 1) {
-      rowIdx += (page - 1) * pageSize;
-    }
-
-    if (rowIdx < 0 || refRows!.originalLength < rowIdx) {
-      return;
-    } else if (rowIdx == 0) {
-      prependRows(rows);
-      return;
-    } else if (refRows!.originalLength == rowIdx) {
-      appendRows(rows);
+    if (rowIdx < 0 || refRows!.length < rowIdx) {
       return;
     }
 
     if (hasSortedColumn) {
-      final int? sortIdx = refRows!.originalList[rowIdx]!.sortIdx;
+      final originalRowIdx = page > 1 ? rowIdx + (page - 1) * pageSize : rowIdx;
+
+      final int? sortIdx = refRows!.originalList[originalRowIdx]!.sortIdx;
 
       PlutoGridStateManager.initializeRows(
         refColumns,
@@ -299,10 +300,19 @@ mixin RowState implements IPlutoGridState {
       return;
     }
 
-    final start = (refRows!.isNotEmpty
-            ? refRows!.map((row) => row!.sortIdx ?? 0).reduce(min)
-            : 0) -
-        rows.length;
+    final minSortIdx = (refRows!.isNotEmpty
+        ? refRows!.first!.sortIdx == null
+            ? 0
+            : refRows!.first!.sortIdx!
+        : 0);
+
+    final start = minSortIdx - rows.length;
+
+    refRows!.originalList.forEach((element) {
+      if (element!.sortIdx != null && element.sortIdx! < minSortIdx) {
+        element.sortIdx = element.sortIdx! - rows.length;
+      }
+    });
 
     PlutoGridStateManager.initializeRows(
       refColumns,
@@ -353,8 +363,16 @@ mixin RowState implements IPlutoGridState {
     }
 
     final start = refRows!.isNotEmpty
-        ? refRows!.map((row) => row!.sortIdx ?? 0).reduce(max) + 1
+        ? refRows!.last!.sortIdx == null
+            ? 1
+            : refRows!.last!.sortIdx! + 1
         : 0;
+
+    refRows!.originalList.forEach((element) {
+      if (element!.sortIdx != null && element.sortIdx! > start - 1) {
+        element.sortIdx = element.sortIdx! + rows.length;
+      }
+    });
 
     PlutoGridStateManager.initializeRows(
       refColumns,
@@ -362,7 +380,7 @@ mixin RowState implements IPlutoGridState {
       start: start,
     );
 
-    refRows!.addAll(rows);
+    _insertRows(refRows!.length, rows, state: PlutoRowState.added);
 
     notifyListeners();
   }
@@ -438,19 +456,22 @@ mixin RowState implements IPlutoGridState {
       return;
     }
 
-    if (page > 1) {
-      indexToMove += (page - 1) * pageSize;
-    }
-
-    if (indexToMove + rows!.length > refRows!.originalLength) {
-      indexToMove = refRows!.originalLength - rows.length;
+    if (indexToMove + rows!.length > refRows!.length) {
+      indexToMove = refRows!.length - rows.length;
     }
 
     rows.forEach((row) {
       refRows!.removeFromOriginal(row);
     });
 
-    refRows!.insertAll(indexToMove, rows.cast<PlutoRow>());
+    final originalRowIdx =
+        page > 1 ? indexToMove + (page - 1) * pageSize : indexToMove;
+
+    if (originalRowIdx >= refRows!.originalLength) {
+      refRows!.addAll(rows.cast<PlutoRow>());
+    } else {
+      refRows!.insertAll(indexToMove, rows.cast<PlutoRow>());
+    }
 
     int sortIdx = 0;
 
@@ -459,6 +480,13 @@ mixin RowState implements IPlutoGridState {
     });
 
     updateCurrentCellPosition(notify: false);
+
+    if (onRowsMoved != null) {
+      onRowsMoved!(PlutoGridOnRowsMovedEvent(
+        idx: indexToMove,
+        rows: rows,
+      ));
+    }
 
     if (notify) {
       notifyListeners();
@@ -489,6 +517,20 @@ mixin RowState implements IPlutoGridState {
       }
     }
 
-    refRows!.insertAll(index, rows.cast<PlutoRow>());
+    final originalRowIdx = page > 1 ? index + (page - 1) * pageSize : index;
+
+    if (originalRowIdx >= refRows!.originalLength) {
+      refRows!.addAll(rows.cast<PlutoRow>());
+    } else {
+      refRows!.insertAll(index, rows.cast<PlutoRow>());
+    }
+
+    if (isPaginated) {
+      setPage(page, notify: false);
+    }
+  }
+
+  void setRowColorCallback(PlutoRowColorCallback? rowColorCallback) {
+    _rowColorCallback = rowColorCallback;
   }
 }
