@@ -4,8 +4,44 @@ import 'package:flutter/services.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 import 'package:rxdart/rxdart.dart';
 
+/// 2021-11-19
+/// KeyEventResult.skipRemainingHandlers 동작 오류로 인한 임시 코드
+/// 이슈 해결 후 : 삭제
+///
+/// desktop 에서만 발생
+/// skipRemainingHandlers 을 리턴하면 pluto_grid.dart 의 FocusScope 의
+/// 콜백이 호출 되지 않고 TextField 에 키 입력이 되어야 하는데
+/// 방향키, 백스페이스 등이 입력되지 않음.(문자등은 입력 됨)
+/// https://github.com/flutter/flutter/issues/93873
+class PlutoGridKeyEventResult {
+  bool _skip = false;
+
+  bool get isSkip => _skip;
+
+  KeyEventResult skip(KeyEventResult result) {
+    _skip = true;
+
+    return result;
+  }
+
+  KeyEventResult consume(KeyEventResult result) {
+    if (_skip) {
+      _skip = false;
+
+      return KeyEventResult.ignored;
+    }
+
+    return result;
+  }
+}
+
 class PlutoGridKeyManager {
   PlutoGridStateManager stateManager;
+
+  /// 2021-11-19
+  /// KeyEventResult.skipRemainingHandlers 동작 오류로 인한 임시 코드
+  /// 이슈 해결 후 : 삭제
+  PlutoGridKeyEventResult eventResult = PlutoGridKeyEventResult();
 
   PlutoGridKeyManager({
     required this.stateManager,
@@ -145,13 +181,31 @@ class PlutoGridKeyManager {
       rowIdx += plutoKeyManagerEvent.isPageUp ? -moveCount : moveCount;
 
       stateManager.moveSelectingCellByRowIdx(rowIdx, direction);
-    } else {
-      int rowIdx = stateManager.currentRowIdx!;
 
-      rowIdx += plutoKeyManagerEvent.isPageUp ? -moveCount : moveCount;
-
-      stateManager.moveCurrentCellByRowIdx(rowIdx, direction);
+      return;
     }
+
+    if (plutoKeyManagerEvent.isAltPressed && stateManager.isPaginated) {
+      int toPage = plutoKeyManagerEvent.isPageUp
+          ? stateManager.page - 1
+          : stateManager.page + 1;
+
+      if (toPage < 1) {
+        toPage = 1;
+      } else if (toPage > stateManager.totalPage) {
+        toPage = stateManager.totalPage;
+      }
+
+      stateManager.setPage(toPage);
+
+      return;
+    }
+
+    int rowIdx = stateManager.currentRowIdx!;
+
+    rowIdx += plutoKeyManagerEvent.isPageUp ? -moveCount : moveCount;
+
+    stateManager.moveCurrentCellByRowIdx(rowIdx, direction);
   }
 
   void _handleEnter(PlutoKeyManagerEvent plutoKeyManagerEvent) {
@@ -293,10 +347,16 @@ class PlutoGridKeyManager {
     if (stateManager.isEditing != true && stateManager.currentCell != null) {
       stateManager.setEditing(true);
 
-      stateManager.changeCellValue(
-        stateManager.currentCell!.key,
-        plutoKeyManagerEvent.event.character,
-      );
+      if (plutoKeyManagerEvent.event.character == null) {
+        return;
+      }
+
+      WidgetsBinding.instance!.addPostFrameCallback((_) {
+        if (stateManager.textEditingController != null) {
+          stateManager.textEditingController!.text =
+              plutoKeyManagerEvent.event.character!;
+        }
+      });
     }
   }
 }

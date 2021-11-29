@@ -82,7 +82,7 @@ class PlutoGridCellGestureEvent extends PlutoGridEvent {
 
     stateManager.setCurrentSelectingPositionWithOffset(offset);
 
-    stateManager.eventManager!.addEvent(PlutoGridMoveUpdateEvent(
+    stateManager.eventManager!.addEvent(PlutoGridScrollUpdateEvent(
       offset: offset,
     ));
   }
@@ -129,11 +129,15 @@ class PlutoGridCellGestureEvent extends PlutoGridEvent {
   }
 
   void _selectMode(PlutoGridStateManager stateManager) {
-    if (stateManager.isCurrentCell(cell)) {
-      stateManager.handleOnSelected();
-    } else {
+    if (stateManager.isCurrentCell(cell) == false) {
       stateManager.setCurrentCell(cell, rowIdx);
+
+      if (!stateManager.mode.isSelectModeWithOneTap) {
+        return;
+      }
     }
+
+    stateManager.handleOnSelected();
   }
 
   void _setCurrentCell(

@@ -128,7 +128,23 @@ abstract class __RowContainerWidgetStateWithChangeKeepAlive extends PlutoStateWi
 }
 
 class __RowContainerWidgetState extends __RowContainerWidgetStateWithChangeKeepAlive {
+  Color getDefaultRowColor() {
+    if (widget.stateManager.rowColorCallback == null) {
+      return Colors.transparent;
+    }
+
+    return widget.stateManager.rowColorCallback!(
+      PlutoRowColorContext(
+        rowIdx: widget.rowIdx!,
+        row: widget.row!,
+        stateManager: widget.stateManager,
+      ),
+    );
+  }
+
   Color rowColor() {
+    final Color defaultColor = getDefaultRowColor();
+
     if (isDragTarget!) return widget.stateManager.configuration!.checkedColor;
 
     final bool checkCurrentRow = isCurrentRow! && (!isSelecting! && !hasCurrentSelectingPosition!);
@@ -136,27 +152,29 @@ class __RowContainerWidgetState extends __RowContainerWidgetStateWithChangeKeepA
     final bool checkSelectedRow = widget.stateManager.isSelectedRow(widget.row!.key);
 
     if (!checkCurrentRow && !checkSelectedRow) {
-      return Colors.transparent;
+      return defaultColor;
     }
 
     if (widget.stateManager.selectingMode.isRow) {
-      return checkSelectedRow ? widget.stateManager.configuration!.activatedColor : Colors.transparent;
+      return checkSelectedRow ? widget.stateManager.configuration!.activatedColor : defaultColor;
     }
 
     if (!hasFocus!) {
-      return Colors.transparent;
+      return defaultColor;
     }
 
-    return checkCurrentRow ? widget.stateManager.configuration!.activatedColor : Colors.transparent;
+    return checkCurrentRow ? widget.stateManager.configuration!.activatedColor : defaultColor;
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
 
+    final Color _rowColor = rowColor();
+
     return Container(
       decoration: BoxDecoration(
-        color: isCheckedRow! ? Color.alphaBlend(const Color(0x11757575), rowColor()) : rowColor(),
+        color: isCheckedRow! ? Color.alphaBlend(const Color(0x11757575), _rowColor) : _rowColor,
       ),
       child: HoverContainer(
         color: Colors.transparent,

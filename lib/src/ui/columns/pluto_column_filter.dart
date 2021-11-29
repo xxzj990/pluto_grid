@@ -126,7 +126,22 @@ abstract class _PlutoColumnFilterStateWithChange
       }
     }
 
-    return KeyEventResult.skipRemainingHandlers;
+    /// 2021-11-19
+    /// KeyEventResult.skipRemainingHandlers 동작 오류로 인한 임시 코드
+    /// 이슈 해결 후 : 삭제
+    if (keyManager.isUp) {
+      return KeyEventResult.handled;
+    }
+
+    /// 2021-11-19
+    /// KeyEventResult.skipRemainingHandlers 동작 오류로 인한 임시 코드
+    /// 이슈 해결 후 :
+    /// ```dart
+    /// return KeyEventResult.skipRemainingHandlers;
+    /// ```
+    return widget.stateManager.keyManager!.eventResult.skip(
+      KeyEventResult.ignored,
+    );
   }
 
   void handleFocusFromRows(PlutoGridEvent plutoEvent) {
@@ -192,6 +207,16 @@ class _PlutoColumnFilterState extends _PlutoColumnFilterStateWithChange {
       width: widget.column!.width,
       height: widget.stateManager.columnHeight,
       padding: const EdgeInsets.symmetric(horizontal: 15.0),
+      decoration: widget.stateManager.configuration!.enableColumnBorder
+          ? BoxDecoration(
+              border: Border(
+                right: BorderSide(
+                  color: widget.stateManager.configuration!.borderColor,
+                  width: 1.0,
+                ),
+              ),
+            )
+          : const BoxDecoration(),
       child: Align(
         alignment: Alignment.center,
         child: Stack(

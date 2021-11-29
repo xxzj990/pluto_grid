@@ -61,6 +61,10 @@ mixin PaginationRowState implements IPlutoGridState {
 
     int from = (page - 1) * _pageSize;
 
+    if (from < 0) {
+      from = 0;
+    }
+
     int to = page * _pageSize;
 
     if (to > _length) {
@@ -70,6 +74,8 @@ mixin PaginationRowState implements IPlutoGridState {
     _range.setRange(from, to);
 
     refRows!.setFilterRange(_range);
+
+    clearCurrentCell(notify: false);
 
     if (notify) {
       notifyListeners();
