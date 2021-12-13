@@ -39,6 +39,8 @@ class PlutoGrid extends StatefulWidget {
 
   final List<PlutoRow?>? rows;
 
+  final List<PlutoColumnGroup>? columnGroups;
+
   final PlutoOnLoadedEventCallback? onLoaded;
 
   final PlutoOnChangedEventCallback? onChanged;
@@ -73,6 +75,7 @@ class PlutoGrid extends StatefulWidget {
     Key? key,
     required this.columns,
     required this.rows,
+    this.columnGroups,
     this.onLoaded,
     this.onChanged,
     this.onSelected,
@@ -115,6 +118,8 @@ class _PlutoGridState extends State<PlutoGrid> {
   bool? _hasRightFrozenColumns;
 
   double? _rightFrozenLeftOffset;
+
+  bool? _showColumnGroups;
 
   bool? _showColumnFilter;
 
@@ -172,6 +177,7 @@ class _PlutoGridState extends State<PlutoGrid> {
         vertical: verticalScroll,
         horizontal: horizontalScroll,
       ),
+      columnGroups: widget.columnGroups,
       mode: widget.mode,
       onChangedEventCallback: widget.onChanged,
       onSelectedEventCallback: widget.onSelected,
@@ -273,6 +279,7 @@ class _PlutoGridState extends State<PlutoGrid> {
         _bodyRightOffset != stateManager.bodyRightOffset ||
         _hasRightFrozenColumns != stateManager.hasRightFrozenColumns ||
         _rightFrozenLeftOffset != stateManager.rightFrozenLeftOffset ||
+        _showColumnGroups != stateManager.showColumnGroups ||
         _showColumnFilter != stateManager.showColumnFilter ||
         _showLoading != stateManager.showLoading) {
       setState(resetState);
@@ -324,6 +331,8 @@ class _PlutoGridState extends State<PlutoGrid> {
 
     _rightFrozenLeftOffset = stateManager.rightFrozenLeftOffset;
 
+    _showColumnGroups = stateManager.showColumnGroups;
+
     _showColumnFilter = stateManager.showColumnFilter;
 
     _showLoading = stateManager.showLoading;
@@ -357,9 +366,8 @@ class _PlutoGridState extends State<PlutoGrid> {
                         const EdgeInsets.all(PlutoGridSettings.gridPadding),
                     decoration: BoxDecoration(
                       color: stateManager.configuration!.gridBackgroundColor,
-                      borderRadius: widget.mode.isNormal
-                          ? stateManager.configuration!.gridBorderRadius
-                          : BorderRadius.zero,
+                      borderRadius:
+                          stateManager.configuration!.gridBorderRadius,
                       border: Border.all(
                         color: stateManager.configuration!.gridBorderColor,
                         width: PlutoGridSettings.gridBorderWidth,
@@ -486,6 +494,7 @@ class _PlutoGridState extends State<PlutoGrid> {
                         if (_showColumnFilter!)
                           Positioned(
                             top: stateManager.headerHeight +
+                                stateManager.columnGroupHeight +
                                 stateManager.columnHeight,
                             left: 0,
                             right: 0,
@@ -665,6 +674,9 @@ class PlutoGridSettings {
 
   /// Cell - padding
   static const double cellPadding = 10;
+
+  /// Column title - padding
+  static const double columnTitlePadding = 10;
 
   /// Cell - fontSize
   static const double cellFontSize = 14;

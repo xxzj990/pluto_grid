@@ -10,11 +10,13 @@ class PlutoDateCell extends StatefulWidget implements AbstractMixinPopupCell {
   final PlutoGridStateManager? stateManager;
   final PlutoCell? cell;
   final PlutoColumn? column;
+  final PlutoRow? row;
 
   PlutoDateCell({
     this.stateManager,
     this.cell,
     this.column,
+    this.row,
   });
 
   @override
@@ -52,8 +54,11 @@ class _PlutoDateCellState extends State<PlutoDateCell>
   void initState() {
     super.initState();
 
-    popupHeight = (8 * PlutoGridSettings.rowTotalHeight) +
-        PlutoGridSettings.shadowLineSize +
+    final rowsHeight = 5 * widget.stateManager!.rowTotalHeight;
+
+    popupHeight = PlutoGridSettings.rowTotalHeight +
+        widget.stateManager!.columnHeight +
+        rowsHeight +
         PlutoGridSettings.gridInnerSpacing;
 
     offsetOfScrollRowIdx = 3;
@@ -85,6 +90,8 @@ class _PlutoDateCellState extends State<PlutoDateCell>
 
   @override
   void onLoaded(PlutoGridOnLoadedEvent event) {
+    super.onLoaded(event);
+
     popupStateManager = event.stateManager;
 
     popupStateManager!.setSelectingMode(PlutoGridSelectingMode.none);
@@ -97,8 +104,6 @@ class _PlutoDateCellState extends State<PlutoDateCell>
 
     keyManagerStream = popupStateManager!.keyManager!.subject.stream
         .listen(_handleGridFocusOnKey);
-
-    super.onLoaded(event);
   }
 
   void _handleGridFocusOnKey(PlutoKeyManagerEvent keyManagerEvent) {
@@ -145,7 +150,8 @@ class _PlutoDateCellState extends State<PlutoDateCell>
       return PlutoColumn(
         title: e[0],
         field: e[1],
-        type: PlutoColumnType.text(readOnly: true),
+        readOnly: true,
+        type: PlutoColumnType.text(),
         width: 45,
         enableColumnDrag: false,
         enableSorting: false,
@@ -296,8 +302,9 @@ class _DateCellHeaderState extends _DateCellHeaderStateWithChange {
   Widget build(BuildContext context) {
     return Container(
       height: widget.stateManager.rowTotalHeight,
-      padding:
-          const EdgeInsets.symmetric(horizontal: PlutoGridSettings.cellPadding),
+      padding: const EdgeInsets.symmetric(
+        horizontal: PlutoGridSettings.cellPadding,
+      ),
       alignment: Alignment.center,
       child: Align(
         alignment: Alignment.center,

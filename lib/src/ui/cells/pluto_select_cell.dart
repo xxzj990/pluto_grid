@@ -7,11 +7,13 @@ class PlutoSelectCell extends StatefulWidget implements AbstractMixinPopupCell {
   final PlutoGridStateManager? stateManager;
   final PlutoCell? cell;
   final PlutoColumn? column;
+  final PlutoRow? row;
 
   PlutoSelectCell({
     this.stateManager,
     this.cell,
     this.column,
+    this.row,
   });
 
   @override
@@ -34,18 +36,19 @@ class _PlutoSelectCellState extends State<PlutoSelectCell>
   void initState() {
     super.initState();
 
-    enableColumnFilter = widget.column!.type.select!.enableColumnFilter == null
-        ? false
-        : widget.column!.type.select!.enableColumnFilter as bool;
+    enableColumnFilter =
+        widget.column!.type.select!.enableColumnFilter ?? false;
 
-    int itemLength = (widget.column!.type.select!.items!.length + 1);
+    final columnFilterHeight = enableColumnFilter
+        ? widget.stateManager!.configuration!.columnFilterHeight
+        : 0;
 
-    if (enableColumnFilter) {
-      itemLength += 1;
-    }
+    final rowsHeight = widget.column!.type.select!.items!.length *
+        widget.stateManager!.rowTotalHeight;
 
-    popupHeight = (itemLength * widget.stateManager!.rowTotalHeight) +
-        PlutoGridSettings.shadowLineSize +
+    popupHeight = widget.stateManager!.columnHeight +
+        columnFilterHeight +
+        rowsHeight +
         PlutoGridSettings.gridInnerSpacing;
 
     fieldOnSelected = widget.column!.title;
@@ -54,7 +57,8 @@ class _PlutoSelectCellState extends State<PlutoSelectCell>
       PlutoColumn(
         title: widget.column!.title,
         field: widget.column!.title,
-        type: PlutoColumnType.text(readOnly: true),
+        readOnly: true,
+        type: PlutoColumnType.text(),
         formatter: widget.column!.formatter,
         enableFilterMenuItem: enableColumnFilter,
         enableHideColumnMenuItem: false,
@@ -73,12 +77,12 @@ class _PlutoSelectCellState extends State<PlutoSelectCell>
 
   @override
   void onLoaded(PlutoGridOnLoadedEvent event) {
+    super.onLoaded(event);
+
     if (enableColumnFilter) {
       event.stateManager!.setShowColumnFilter(true, notify: false);
     }
 
     event.stateManager!.setSelectingMode(PlutoGridSelectingMode.none);
-
-    super.onLoaded(event);
   }
 }

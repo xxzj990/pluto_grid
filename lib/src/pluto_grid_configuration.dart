@@ -3,8 +3,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:pluto_grid/pluto_grid.dart';
 
-import 'helper/filter_helper.dart';
-
 class PlutoGridConfiguration {
   /// border between columns.
   final bool enableColumnBorder;
@@ -12,7 +10,11 @@ class PlutoGridConfiguration {
   /// Activate the shadow that separates each area of the grid.
   final bool enableGridBorderShadow;
 
+  /// Grid corners can be rounded.
   final BorderRadiusGeometry gridBorderRadius;
+
+  /// The corners of the popup-type grid used inside the grid can be rounded.
+  final BorderRadiusGeometry gridPopupBorderRadius;
 
   final Color gridBackgroundColor;
 
@@ -58,8 +60,27 @@ class PlutoGridConfiguration {
   /// Height of a row.
   final double rowHeight;
 
+  /// Height of column.
+  final double columnHeight;
+
+  /// Height of column filter.
+  final double columnFilterHeight;
+
+  /// Customise column title padding
+  /// If there is no titlePadding of PlutoColumn,
+  /// it is the title padding of the default column. (Horizontal only)
+  final double defaultColumnTitlePadding;
+
+  /// Customise cell padding
+  /// If there is no cellPadding of PlutoColumn,
+  /// it is the padding value of cell. (Horizontal only)
+  final double defaultCellPadding;
+
   /// When you select a value in the pop-up grid, it moves down.
   final bool enableMoveDownAfterSelecting;
+
+  /// Moves the current cell when focus reaches the left or right edge in the edit state.
+  final bool enableMoveHorizontalInEditing;
 
   /// PlutoEnterKeyAction.EditingAndMoveDown : It switches to the editing state, and moves down in the editing state.
   /// PlutoEnterKeyAction.EditingAndMoveRight : It switches to the editing state, and moves to the right in the editing state.
@@ -77,8 +98,9 @@ class PlutoGridConfiguration {
 
   PlutoGridConfiguration({
     this.enableColumnBorder = false,
-    this.enableGridBorderShadow = true,
+    this.enableGridBorderShadow = false,
     this.gridBorderRadius = BorderRadius.zero,
+    this.gridPopupBorderRadius = BorderRadius.zero,
     this.gridBackgroundColor = Colors.white,
     this.gridBorderColor = const Color(0xFFA1A5AE),
     this.activatedColor = const Color(0xFFDCF5FF),
@@ -102,7 +124,12 @@ class PlutoGridConfiguration {
     this.iconSize = 18,
     this.menuBackgroundColor = Colors.white,
     this.rowHeight = PlutoGridSettings.rowHeight,
+    this.columnHeight = PlutoGridSettings.rowHeight,
+    this.columnFilterHeight = PlutoGridSettings.rowHeight,
+    this.defaultColumnTitlePadding = PlutoGridSettings.columnTitlePadding,
+    this.defaultCellPadding = PlutoGridSettings.cellPadding,
     this.enableMoveDownAfterSelecting = true,
+    this.enableMoveHorizontalInEditing = false,
     this.enterKeyAction = PlutoGridEnterKeyAction.editingAndMoveDown,
     this.localeText = const PlutoGridLocaleText(),
     this.scrollbarConfig = const PlutoGridScrollbarConfig(),
@@ -113,8 +140,9 @@ class PlutoGridConfiguration {
 
   PlutoGridConfiguration.dark({
     this.enableColumnBorder = false,
-    this.enableGridBorderShadow = true,
+    this.enableGridBorderShadow = false,
     this.gridBorderRadius = BorderRadius.zero,
+    this.gridPopupBorderRadius = BorderRadius.zero,
     this.gridBackgroundColor = const Color(0xFF111111),
     this.gridBorderColor = const Color(0xFF000000),
     this.activatedColor = const Color(0xFF313131),
@@ -138,7 +166,12 @@ class PlutoGridConfiguration {
     this.iconSize = 18,
     this.menuBackgroundColor = const Color(0xFF414141),
     this.rowHeight = PlutoGridSettings.rowHeight,
+    this.columnHeight = PlutoGridSettings.rowHeight,
+    this.columnFilterHeight = PlutoGridSettings.rowHeight,
+    this.defaultColumnTitlePadding = PlutoGridSettings.columnTitlePadding,
+    this.defaultCellPadding = PlutoGridSettings.cellPadding,
     this.enableMoveDownAfterSelecting = true,
+    this.enableMoveHorizontalInEditing = false,
     this.enterKeyAction = PlutoGridEnterKeyAction.editingAndMoveDown,
     this.localeText = const PlutoGridLocaleText(),
     this.scrollbarConfig = const PlutoGridScrollbarConfig(),
@@ -178,6 +211,10 @@ class PlutoGridConfiguration {
 
   PlutoGridConfiguration copyWith({
     bool? enableColumnBorder,
+    bool? enableColumnGroupBorder,
+    bool? enableGridBorderShadow,
+    BorderRadiusGeometry? gridBorderRadius,
+    BorderRadiusGeometry? gridPopupBorderRadius,
     Color? gridBackgroundColor,
     Color? gridBorderColor,
     Color? activatedColor,
@@ -189,9 +226,15 @@ class PlutoGridConfiguration {
     TextStyle? columnTextStyle,
     TextStyle? cellTextStyle,
     Color? iconColor,
+    double? iconSize,
     Color? menuBackgroundColor,
     double? rowHeight,
+    double? columnHeight,
+    double? columnFilterHeight,
+    double? defaultColumnTitlePadding,
+    double? defaultCellPadding,
     bool? enableMoveDownAfterSelecting,
+    bool? enableMoveHorizontalInEditing,
     PlutoGridEnterKeyAction? enterKeyAction,
     PlutoGridLocaleText? localeText,
     PlutoGridScrollbarConfig? scrollbarConfig,
@@ -199,6 +242,11 @@ class PlutoGridConfiguration {
   }) {
     return PlutoGridConfiguration(
       enableColumnBorder: enableColumnBorder ?? this.enableColumnBorder,
+      enableGridBorderShadow:
+          enableGridBorderShadow ?? this.enableGridBorderShadow,
+      gridBorderRadius: gridBorderRadius ?? this.gridBorderRadius,
+      gridPopupBorderRadius:
+          gridPopupBorderRadius ?? this.gridPopupBorderRadius,
       gridBackgroundColor: gridBackgroundColor ?? this.gridBackgroundColor,
       gridBorderColor: gridBorderColor ?? this.gridBorderColor,
       activatedColor: activatedColor ?? this.activatedColor,
@@ -211,10 +259,18 @@ class PlutoGridConfiguration {
       columnTextStyle: columnTextStyle ?? this.columnTextStyle,
       cellTextStyle: cellTextStyle ?? this.cellTextStyle,
       iconColor: iconColor ?? this.iconColor,
+      iconSize: iconSize ?? this.iconSize,
       menuBackgroundColor: menuBackgroundColor ?? this.menuBackgroundColor,
       rowHeight: rowHeight ?? this.rowHeight,
+      columnHeight: columnHeight ?? this.columnHeight,
+      columnFilterHeight: columnFilterHeight ?? this.columnFilterHeight,
+      defaultColumnTitlePadding:
+          defaultColumnTitlePadding ?? this.defaultColumnTitlePadding,
+      defaultCellPadding: defaultCellPadding ?? this.defaultCellPadding,
       enableMoveDownAfterSelecting:
           enableMoveDownAfterSelecting ?? this.enableMoveDownAfterSelecting,
+      enableMoveHorizontalInEditing:
+          enableMoveHorizontalInEditing ?? this.enableMoveHorizontalInEditing,
       enterKeyAction: enterKeyAction ?? this.enterKeyAction,
       localeText: localeText ?? this.localeText,
       scrollbarConfig: scrollbarConfig ?? this.scrollbarConfig,

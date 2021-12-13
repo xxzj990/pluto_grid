@@ -5,11 +5,13 @@ abstract class AbstractMixinPopupCell extends StatefulWidget {
   final PlutoGridStateManager? stateManager;
   final PlutoCell? cell;
   final PlutoColumn? column;
+  final PlutoRow? row;
 
   AbstractMixinPopupCell({
     this.stateManager,
     this.cell,
     this.column,
+    this.row,
   });
 }
 
@@ -71,7 +73,7 @@ mixin MixinPopupCell<T extends AbstractMixinPopupCell> on State<T>
   }
 
   void openPopup() {
-    if (widget.column!.type!.readOnly!) {
+    if (widget.column!.checkReadOnly(widget.row!, widget.cell!)) {
       return;
     }
 
@@ -91,11 +93,14 @@ mixin MixinPopupCell<T extends AbstractMixinPopupCell> on State<T>
       height: popupHeight,
       createHeader: createHeader,
       createFooter: createFooter,
-      configuration: widget.column!.type.isSelect
-          ? widget.stateManager!.configuration
-          : widget.stateManager!.configuration!.copyWith(
-              rowHeight: PlutoGridSettings.rowHeight,
-            ),
+      configuration: widget.stateManager?.configuration?.copyWith(
+        gridBorderRadius:
+            widget.stateManager!.configuration?.gridPopupBorderRadius ??
+                BorderRadius.zero,
+        defaultColumnTitlePadding: PlutoGridSettings.columnTitlePadding,
+        defaultCellPadding: PlutoGridSettings.cellPadding,
+        rowHeight: widget.stateManager!.configuration!.rowHeight,
+      ),
     );
   }
 

@@ -17,6 +17,8 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
 
   List<PlutoRow>? rows;
 
+  List<PlutoColumnGroup>? columnGroups;
+
   PlutoGridStateManager? stateManager;
 
   PlutoGridSelectingMode? gridSelectingMode = PlutoGridSelectingMode.cell;
@@ -34,7 +36,20 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         enableRowChecked: true,
         enableContextMenu: false,
         enableDropToResize: true,
+        enableAutoEditing: true,
         titleTextAlign: PlutoColumnTextAlign.right,
+        titleSpan: const TextSpan(
+          children: [
+            WidgetSpan(
+              child: Text(
+                '* ',
+                style: TextStyle(color: Colors.red),
+              ),
+              alignment: PlaceholderAlignment.bottom,
+            ),
+            TextSpan(text: 'column1'),
+          ],
+        ),
         width: 250,
         minWidth: 175,
         renderer: (rendererContext) {
@@ -113,6 +128,7 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         field: 'column3',
         textAlign: PlutoColumnTextAlign.left,
         titleTextAlign: PlutoColumnTextAlign.center,
+        enableAutoEditing: true,
         type: PlutoColumnType.date(),
       ),
       PlutoColumn(
@@ -138,8 +154,43 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         enableFilterMenuItem: false,
         enableEditingMode: false,
         renderer: (rendererContext) {
-          return Image.asset('assets/images/cat.jpg');
+          return Image.asset(
+            'assets/images/cat.jpg',
+            fit: BoxFit.fitWidth,
+          );
         },
+      ),
+      PlutoColumn(
+        title: 'column7',
+        field: 'column7',
+        type: PlutoColumnType.number(),
+        enableFilterMenuItem: false,
+        enableEditingMode: false,
+        // NEW Custom cellPadding
+        cellPadding: 0,
+        width: 80,
+        renderer: (rendererContext) {
+          return Container(
+            color: rendererContext.cell!.value % 2 == 0
+                ? Colors.yellow
+                : Colors.teal,
+          );
+        },
+      ),
+    ];
+
+    columnGroups = [
+      PlutoColumnGroup(
+        title: 'Group A',
+        fields: ['column1', 'column2', 'column3'],
+      ),
+      PlutoColumnGroup(
+        title: 'Group B',
+        fields: ['column4', 'column5', 'column6'],
+      ),
+      PlutoColumnGroup(
+        title: 'Group C',
+        fields: ['column7'],
       ),
     ];
 
@@ -195,14 +246,19 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
         child: PlutoGrid(
           columns: columns,
           rows: rows,
+          columnGroups: columnGroups,
           // mode: PlutoGridMode.selectWithOneTap,
           onChanged: (PlutoGridOnChangedEvent event) {
             print(event);
           },
           onLoaded: (PlutoGridOnLoadedEvent event) {
             stateManager = event.stateManager;
+
+            stateManager!.setShowColumnFilter(true, notify: false);
+
+            // stateManager!.setAutoEditing(true, notify: false);
+
             stateManager!.setSelectingMode(gridSelectingMode!);
-            stateManager!.setShowColumnFilter(true);
           },
           // onSelected: (event) {
           //   print(event.cell!.value);
@@ -304,10 +360,17 @@ class _DevelopmentScreenState extends State<DevelopmentScreen> {
                 : Colors.transparent;
           },
           configuration: PlutoGridConfiguration(
+            // columnHeight: 30.0,
+            // columnFilterHeight: 30.0,
             // rowHeight: 30.0,
+            // defaultCellPadding: 15,
+            // defaultColumnTitlePadding: 15,
+            // iconSize: 15,
             enableColumnBorder: true,
-            enableGridBorderShadow: true,
+            // enableGridBorderShadow: true,
+            enableMoveHorizontalInEditing: true,
             gridBorderRadius: BorderRadius.circular(10),
+            gridPopupBorderRadius: BorderRadius.circular(7),
             scrollbarConfig: const PlutoGridScrollbarConfig(
               isAlwaysShown: false,
               scrollbarThickness: 8,

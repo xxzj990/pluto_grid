@@ -9,6 +9,7 @@ import 'screen/feature/cell_renderer_screen.dart';
 import 'screen/feature/cell_selection_screen.dart';
 import 'screen/feature/column_filtering_screen.dart';
 import 'screen/feature/column_freezing_screen.dart';
+import 'screen/feature/column_group_screen.dart';
 import 'screen/feature/column_hiding_screen.dart';
 import 'screen/feature/column_moving_screen.dart';
 import 'screen/feature/column_resizing_screen.dart';
@@ -17,6 +18,7 @@ import 'screen/feature/copy_and_paste_screen.dart';
 import 'screen/feature/dark_mode_screen.dart';
 import 'screen/feature/date_type_column_screen.dart';
 import 'screen/feature/dual_mode_screen.dart';
+import 'screen/feature/editing_state_screen.dart';
 import 'screen/feature/grid_as_popup_screen.dart';
 import 'screen/feature/listing_mode_screen.dart';
 import 'screen/feature/moving_screen.dart';
@@ -44,8 +46,10 @@ class MyApp extends StatelessWidget {
           kReleaseMode ? HomeScreen.routeName : DevelopmentScreen.routeName,
       routes: {
         HomeScreen.routeName: (context) => HomeScreen(),
+        EditingStateScreen.routeName: (context) => EditingStateScreen(),
         ColumnMovingScreen.routeName: (context) => ColumnMovingScreen(),
         ColumnFreezingScreen.routeName: (context) => ColumnFreezingScreen(),
+        ColumnGroupScreen.routeName: (context) => ColumnGroupScreen(),
         ColumnResizingScreen.routeName: (context) => ColumnResizingScreen(),
         ColumnSortingScreen.routeName: (context) => ColumnSortingScreen(),
         ColumnFilteringScreen.routeName: (context) => ColumnFilteringScreen(),

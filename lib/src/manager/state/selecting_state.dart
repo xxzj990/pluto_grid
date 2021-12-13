@@ -195,7 +195,7 @@ mixin SelectingState implements IPlutoGridState {
     switch (_selectingMode) {
       case PlutoGridSelectingMode.cell:
       case PlutoGridSelectingMode.horizontal:
-        setCurrentCell(firstCell, 0, notify: false);
+        _setFistCellAsCurrent();
 
         setCurrentSelectingPosition(
           cellPosition: PlutoGridCellPosition(
@@ -206,7 +206,7 @@ mixin SelectingState implements IPlutoGridState {
         break;
       case PlutoGridSelectingMode.row:
         if (currentCell == null) {
-          setCurrentCell(firstCell, 0, notify: false);
+          _setFistCellAsCurrent();
         }
 
         _currentSelectingPosition = PlutoGridCellPosition(
@@ -272,6 +272,7 @@ mixin SelectingState implements IPlutoGridState {
     final double gridBodyOffsetDy = gridGlobalOffset!.dy +
         PlutoGridSettings.gridBorderWidth +
         headerHeight +
+        columnGroupHeight +
         columnHeight +
         columnFilterHeight;
 
@@ -577,5 +578,13 @@ mixin SelectingState implements IPlutoGridState {
 
   String _selectingTextFromCurrentCell() {
     return currentCell!.value.toString();
+  }
+
+  void _setFistCellAsCurrent() {
+    setCurrentCell(firstCell, 0, notify: false);
+
+    if (isEditing == true) {
+      setEditing(false, notify: false);
+    }
   }
 }

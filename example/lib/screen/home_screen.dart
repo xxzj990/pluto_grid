@@ -1,7 +1,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import '../helper/launch_url.dart';
@@ -15,6 +14,7 @@ import 'feature/cell_renderer_screen.dart';
 import 'feature/cell_selection_screen.dart';
 import 'feature/column_filtering_screen.dart';
 import 'feature/column_freezing_screen.dart';
+import 'feature/column_group_screen.dart';
 import 'feature/column_hiding_screen.dart';
 import 'feature/column_moving_screen.dart';
 import 'feature/column_resizing_screen.dart';
@@ -23,6 +23,7 @@ import 'feature/copy_and_paste_screen.dart';
 import 'feature/dark_mode_screen.dart';
 import 'feature/date_type_column_screen.dart';
 import 'feature/dual_mode_screen.dart';
+import 'feature/editing_state_screen.dart';
 import 'feature/grid_as_popup_screen.dart';
 import 'feature/listing_mode_screen.dart';
 import 'feature/moving_screen.dart';
@@ -153,8 +154,8 @@ class HomeScreen extends StatelessWidget {
                               onTap: () {
                                 launchUrl('https://www.buymeacoffee.com/manki');
                               },
-                              child: Image.network(
-                                'https://cdn.buymeacoffee.com/buttons/v2/default-white.png',
+                              child: Image.asset(
+                                'assets/images/buy_me_a_coffee.png',
                                 height: 60,
                               ),
                             ),
@@ -182,6 +183,11 @@ class PlutoFeatures extends StatelessWidget {
     color: Colors.deepOrange,
   );
 
+  final Icon updateIcon = const Icon(
+    Icons.update,
+    color: Colors.deepOrange,
+  );
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -203,6 +209,14 @@ class PlutoFeatures extends StatelessWidget {
             onTapLiveDemo: () {
               Navigator.pushNamed(context, ColumnFreezingScreen.routeName);
             },
+          ),
+          PlutoListTile(
+            title: 'Column group',
+            description: 'Group columns by the desired depth.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, ColumnGroupScreen.routeName);
+            },
+            trailing: newIcon,
           ),
           PlutoListTile(
             title: 'Column resizing',
@@ -347,11 +361,19 @@ class PlutoFeatures extends StatelessWidget {
             },
           ),
           PlutoListTile(
+            title: 'Editing state',
+            description: 'Controls the editing state of a cell.',
+            onTapLiveDemo: () {
+              Navigator.pushNamed(context, EditingStateScreen.routeName);
+            },
+          ),
+          PlutoListTile(
             title: 'Add and Remove Rows',
             description: 'You can add or delete rows.',
             onTapLiveDemo: () {
               Navigator.pushNamed(context, AddAndRemoveRowsScreen.routeName);
             },
+            trailing: updateIcon,
           ),
           PlutoListTile(
             title: 'Dual mode',
@@ -437,6 +459,13 @@ class PlutoContributors extends StatelessWidget {
             linkTitle: 'Github',
             onTapLink: () {
               launchUrl('https://github.com/christianarduino');
+            },
+          ),
+          PlutoContributorTile(
+            name: 'Enrique Cardona',
+            linkTitle: 'Github',
+            onTapLink: () {
+              launchUrl('https://github.com/henry2man');
             },
           ),
           PlutoContributorTile.invisible(
