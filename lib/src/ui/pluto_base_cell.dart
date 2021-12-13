@@ -8,6 +8,7 @@ class PlutoBaseCell extends PlutoStatefulWidget {
   final double? height;
   final PlutoColumn? column;
   final int? rowIdx;
+  final PlutoRow? row;
 
   PlutoBaseCell({
     Key? key,
@@ -17,6 +18,7 @@ class PlutoBaseCell extends PlutoStatefulWidget {
     this.height,
     this.column,
     this.rowIdx,
+    this.row,
   }) : super(key: key);
 
   @override
@@ -47,7 +49,11 @@ abstract class _PlutoBaseCellStateWithChangeKeepAlive
         widget.stateManager.isCurrentCell(widget.cell),
       );
 
-      isEditing = update<bool?>(isEditing, widget.stateManager.isEditing);
+      isEditing = update<bool?>(
+        isEditing,
+        widget.stateManager.isEditing,
+        ignoreChange: isCurrentCell != true,
+      );
 
       selectingMode = update<PlutoGridSelectingMode?>(
         selectingMode,
@@ -143,7 +149,7 @@ class _PlutoBaseCellState extends _PlutoBaseCellStateWithChangeKeepAlive {
       onDoubleTap: _onDoubleTapOrNull(),
       onSecondaryTapDown: _onSecondaryTapOrNull(),
       child: _CellContainer(
-        readOnly: widget.column!.type!.readOnly,
+        readOnly: widget.column!.checkReadOnly(widget.row!, widget.cell!),
         width: widget.width,
         height: widget.height,
         hasFocus: widget.stateManager.hasFocus,
@@ -152,10 +158,12 @@ class _PlutoBaseCellState extends _PlutoBaseCellStateWithChangeKeepAlive {
         selectingMode: selectingMode,
         isSelectedCell: isSelectedCell,
         configuration: widget.stateManager.configuration,
+        cellPadding: widget.column!.cellPadding,
         child: _BuildCell(
           stateManager: widget.stateManager,
           rowIdx: widget.rowIdx,
           column: widget.column,
+          row: widget.row,
           cell: widget.cell,
           isCurrentCell: isCurrentCell,
           isEditing: isEditing,
@@ -176,6 +184,7 @@ class _CellContainer extends StatelessWidget {
   final PlutoGridSelectingMode? selectingMode;
   final bool? isSelectedCell;
   final PlutoGridConfiguration? configuration;
+  final double? cellPadding;
 
   _CellContainer({
     this.readOnly,
@@ -188,6 +197,7 @@ class _CellContainer extends StatelessWidget {
     this.selectingMode,
     this.isSelectedCell,
     this.configuration,
+    this.cellPadding,
   });
 
   Color? _currentCellColor() {
@@ -242,8 +252,10 @@ class _CellContainer extends StatelessWidget {
       height: height,
       decoration: _boxDecoration(),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: PlutoGridSettings.cellPadding),
+        // New - Customisable cellPadding
+        padding: EdgeInsets.symmetric(
+          horizontal: cellPadding ?? configuration!.defaultCellPadding,
+        ),
         child: Container(
           clipBehavior: Clip.hardEdge,
           height: height,
@@ -259,6 +271,7 @@ class _CellContainer extends StatelessWidget {
 class _BuildCell extends StatelessWidget {
   final PlutoGridStateManager? stateManager;
   final int? rowIdx;
+  final PlutoRow? row;
   final PlutoColumn? column;
   final PlutoCell? cell;
   final bool? isCurrentCell;
@@ -268,6 +281,7 @@ class _BuildCell extends StatelessWidget {
     Key? key,
     this.stateManager,
     this.rowIdx,
+    this.row,
     this.column,
     this.cell,
     this.isCurrentCell,
@@ -282,30 +296,35 @@ class _BuildCell extends StatelessWidget {
           stateManager: stateManager,
           cell: cell,
           column: column,
+          row: row,
         );
       } else if (column!.type.isNumber) {
         return PlutoNumberCell(
           stateManager: stateManager,
           cell: cell,
           column: column,
+          row: row,
         );
       } else if (column!.type.isDate) {
         return PlutoDateCell(
           stateManager: stateManager,
           cell: cell,
           column: column,
+          row: row,
         );
       } else if (column!.type.isTime) {
         return PlutoTimeCell(
           stateManager: stateManager,
           cell: cell,
           column: column,
+          row: row,
         );
       } else if (column!.type.isText) {
         return PlutoTextCell(
           stateManager: stateManager,
           cell: cell,
           column: column,
+          row: row,
         );
       }
     }
@@ -315,6 +334,7 @@ class _BuildCell extends StatelessWidget {
       cell: cell,
       column: column,
       rowIdx: rowIdx,
+      row: row,
     );
   }
 }

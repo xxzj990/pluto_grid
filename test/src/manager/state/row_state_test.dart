@@ -815,7 +815,7 @@ void main() {
           scroll: null,
         );
 
-        stateManager.toggleSortColumn(columns.first.key);
+        stateManager.toggleSortColumn(columns.first);
         expect(stateManager.hasSortedColumn, isTrue);
         expect(stateManager.rows[0]!.sortIdx, 1);
         expect(stateManager.rows[1]!.sortIdx, 2);
@@ -1081,7 +1081,7 @@ void main() {
         // 마지막 Row 에 추가 됨
         expect(
           stateManager.rows[5]!.cells['text0']!.value,
-          columns[0].type!.defaultValue,
+          columns[0].type.defaultValue,
         );
       },
     );
@@ -1111,11 +1111,11 @@ void main() {
         // 추가 된 5~9 번 셀의 기본 값
         expect(
           stateManager.rows[5]!.cells['text0']!.value,
-          columns[0].type!.defaultValue,
+          columns[0].type.defaultValue,
         );
         expect(
           stateManager.rows[9]!.cells['text0']!.value,
-          columns[0].type!.defaultValue,
+          columns[0].type.defaultValue,
         );
       },
     );

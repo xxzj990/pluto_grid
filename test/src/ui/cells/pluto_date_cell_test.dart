@@ -18,6 +18,12 @@ void main() {
   setUp(() {
     stateManager = MockPlutoGridStateManager();
     when(stateManager!.configuration).thenReturn(PlutoGridConfiguration());
+    when(stateManager!.columnHeight).thenReturn(
+      stateManager!.configuration!.columnHeight,
+    );
+    when(stateManager!.rowHeight).thenReturn(
+      stateManager!.configuration!.rowHeight,
+    );
     when(stateManager!.rowTotalHeight).thenReturn(
       RowHelper.resolveRowTotalHeight(stateManager!.configuration!.rowHeight),
     );
@@ -35,6 +41,12 @@ void main() {
 
     final PlutoCell cell = PlutoCell(value: '2020-01-01');
 
+    final PlutoRow row = PlutoRow(
+      cells: {
+        'column_field_name': cell,
+      },
+    );
+
     final tapCell = PlutoWidgetTestHelper('Tap cell', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
@@ -43,6 +55,7 @@ void main() {
               stateManager: stateManager,
               cell: cell,
               column: column,
+              row: row,
             ),
           ),
         ),
@@ -90,6 +103,12 @@ void main() {
 
       PlutoCell cell = PlutoCell(value: date);
 
+      final PlutoRow row = PlutoRow(
+        cells: {
+          'column_field_name': cell,
+        },
+      );
+
       return PlutoWidgetTestHelper('DateCell 생성', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -98,6 +117,7 @@ void main() {
                 stateManager: stateManager,
                 cell: cell,
                 column: column,
+                row: row,
               ),
             ),
           ),
@@ -267,6 +287,12 @@ void main() {
 
       PlutoCell cell = PlutoCell(value: date);
 
+      final PlutoRow row = PlutoRow(
+        cells: {
+          'column_field_name': cell,
+        },
+      );
+
       return PlutoWidgetTestHelper('DateCell 생성', (tester) async {
         await tester.pumpWidget(
           MaterialApp(
@@ -275,6 +301,7 @@ void main() {
                 stateManager: stateManager,
                 cell: cell,
                 column: column,
+                row: row,
               ),
             ),
           ),
